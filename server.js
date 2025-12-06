@@ -1,6 +1,5 @@
 const express= require('express');
 const connectDb= require('./config/dbConnection');
-const { error } = require('pdf-lib');
 const errorHandler = require('./Middleware_/errorHandler');
 require('dotenv').config();
 
@@ -11,13 +10,13 @@ connectDb();
 
 
 const app= express();
-app.use(errorHandler);
 app.use(express.json());
 app.use("/microfinance/user",require("./routes/userRoutes"));
- app.listen(3000,()=> {
-    console.log("Server started on port 3000");
- })
 
- const nbfcRoutes = require("./routes/nbfcRoutes");
+// register error handler after routes
+app.use(errorHandler);
 
-app.use("/api/nbfc", nbfcRoutes);
+app.listen(5001,()=> {
+   console.log("Server started on port 5001");
+});
+

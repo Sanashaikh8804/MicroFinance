@@ -6,7 +6,7 @@ const userSchema= mongoose.Schema({
         required: true  
     },
     phone_number: {
-        type: integer,  
+        type: Number,  
         required: true
     },
     password: {
@@ -15,14 +15,16 @@ const userSchema= mongoose.Schema({
     },
     email: {    
         type: String,
-        required: true  
+        required: true,
+        unique: true,
+        index: true
     },
     aadhar: {
-        type: integer,
+        type: Number,
         required: true
     },
     pan: {
-        type: integer,
+        type: Number,
         required: true  
     },
     business_description: {
@@ -31,11 +33,11 @@ const userSchema= mongoose.Schema({
     },
     previous_micro_loans: { 
         numberOfLoans: {
-            type: integer,
+            type: Number,
             required: true
     },  
         totalAmount: {
-            type: integer,
+            type: Number,
             required: true
         },
     
@@ -44,12 +46,12 @@ const userSchema= mongoose.Schema({
             required: true
         },
         remainingPayments: {
-            type: integer,
+            type: Number,
             required: true
         }
     },
     gst_number: {
-        type: integer,
+        type: Number,
         required: true  
     }
 });

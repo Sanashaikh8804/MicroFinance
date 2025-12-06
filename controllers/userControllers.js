@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
 const express = require("express");
+const bcryptjs = require("bcryptjs");
 
 //create new user
 const createUser=  asyncHandler(async (req, res) => {
@@ -16,10 +17,14 @@ const createUser=  asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error("User already exists");
     }
+    
+    // Hash password before saving
+    const hashedPassword = await bcryptjs.hash(password, 10);
+    
     const user = await User.create({
         name,
         phone_number,
-        password,
+        password: hashedPassword,
         email,
         aadhar,
         pan,
@@ -56,8 +61,20 @@ const loginUser= asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error("Please fill all the fields");
     }
+    const startTotal = Date.now();
+    console.log(`[login] start - email=${email}`);
+    console.time("[login] findOne");
     const user = await User.findOne({ email });
-    if (user && (user.password === password)) {
+    console.timeEnd("[login] findOne");
+
+    console.time("[login] bcryptCompare");
+    const passwordMatches = user ? await bcryptjs.compare(password, user.password) : false;
+    console.timeEnd("[login] bcryptCompare");
+
+    const totalMs = Date.now() - startTotal;
+    console.log(`[login] total ${totalMs}ms`);
+
+    if (user && passwordMatches) {
         res.status(200).json({  
             _id: user._id,
             name: user.name,
