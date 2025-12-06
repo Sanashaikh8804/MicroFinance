@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react';
 import type { User } from '../../App';
 
 interface NBFCRegistrationProps {
@@ -8,6 +8,9 @@ interface NBFCRegistrationProps {
 }
 
 export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const [formData, setFormData] = useState({
     companyName: '',
     licenseNumber: '',
@@ -26,14 +29,63 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear error when user modifies form
+    if (error) setError('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onComplete({
-      name: formData.companyName,
-      role: 'nbfc'
-    });
+    setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Map frontend state to backend model (nbfcController.js)
+      const payload = {
+        companyName: formData.companyName,
+        cinNumber: formData.licenseNumber, // Mapped from licenseNumber
+        registrationYear: formData.registrationYear,
+        headquartersLocation: formData.headquarters, // Mapped from headquarters
+        contactFullName: formData.authorizedPerson, // Mapped from authorizedPerson
+        designation: formData.designation,
+        officialEmail: formData.email, // Mapped from email
+        phoneNumber: formData.phone, // Mapped from phone
+        password: formData.password
+      };
+
+      // Ensure this URL matches where you mounted the nbfcRoutes in your server.js
+      const response = await fetch('http://localhost:5000/api/nbfc/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Uses the error message format from nbfcController.js
+        throw new Error(data.error || 'Registration failed');
+      }
+
+      // Success: login the user automatically
+      onComplete({
+        name: data.companyName,
+        role: 'nbfc',
+        // id: data.nbfcId 
+      });
+
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during connection');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -41,7 +93,8 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
       <div className="w-4/5 max-w-6xl">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8"
+          disabled={isLoading}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8 disabled:opacity-50"
         >
           <ArrowLeft className="w-5 h-5" />
           Back
@@ -52,6 +105,13 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
             <h2 className="text-gray-900 mb-2">NBFC Registration</h2>
             <p className="text-gray-600">Register your financial institution on FinBridge</p>
           </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <p>{error}</p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Company Information */}
@@ -66,20 +126,22 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
                     value={formData.companyName}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="Your NBFC name"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-2">NBFC License Number *</label>
+                  <label className="block text-gray-700 mb-2">CIN Number*</label>
                   <input
                     type="text"
                     name="licenseNumber"
                     value={formData.licenseNumber}
                     onChange={handleChange}
                     required
-                    placeholder="RBI License No."
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    disabled={isLoading}
+                    placeholder="Your CIN number"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
                 <div>
@@ -90,8 +152,9 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
                     value={formData.registrationYear}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="YYYY"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -102,8 +165,9 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
                     value={formData.headquarters}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="City, State"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
               </div>
@@ -121,8 +185,9 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
                     value={formData.authorizedPerson}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="Contact person name"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
                 <div>
@@ -133,8 +198,9 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
                     value={formData.designation}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="e.g., Director, Manager"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
                 <div>
@@ -145,8 +211,9 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="contact@company.com"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
                 <div>
@@ -157,8 +224,9 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
                     value={formData.phone}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="+91 XXXXX XXXXX"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
               </div>
@@ -174,8 +242,9 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  disabled={isLoading}
                   placeholder="Create a strong password"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                 />
               </div>
               <div>
@@ -186,8 +255,9 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
+                  disabled={isLoading}
                   placeholder="Re-enter password"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                 />
               </div>
             </div>
@@ -203,6 +273,7 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
               <input
                 type="checkbox"
                 required
+                disabled={isLoading}
                 className="mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
               <label className="text-sm text-gray-600">
@@ -213,9 +284,17 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all shadow-md"
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Complete Registration
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Registering...
+                </>
+              ) : (
+                'Complete Registration'
+              )}
             </button>
           </form>
         </div>
