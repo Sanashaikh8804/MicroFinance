@@ -19,6 +19,7 @@ export interface User {
   name: string;
   role: UserRole;
   businessName?: string;
+  id?: string;
 }
 
 export interface LoanCriteria {

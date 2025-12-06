@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const cors = require("cors");
 const connectDb = require('./config/dbConnection');
 const errorHandler = require('./Middleware_/errorHandler');
 const nbfcRoutes = require('./routes/nbfcRoutes');
@@ -12,6 +13,7 @@ connectDb();
 const app = express();
 
 // Parse JSON FIRST
+app.use(cors());
 app.use(express.json());
 
 app.use("/microfinance/user",require("./routes/userRoutes"));
@@ -31,6 +33,6 @@ app.use('/api/nbfc', nbfcRoutes);
 app.use(errorHandler);
 
 // Start server
-app.listen(3000, () => {
-    console.log('Server started on port 3000');
+app.listen(5000, () => {
+    console.log('Server started on port 5000');
 });
