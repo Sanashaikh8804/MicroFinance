@@ -88,4 +88,4 @@ const nbfcSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Nbfc", nbfcSchema);
+module.exports = mongoose.model("nbfc", nbfcSchema);
