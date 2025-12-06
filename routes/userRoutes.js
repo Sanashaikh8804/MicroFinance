@@ -1,6 +1,9 @@
 const express= require('express');
 const router= express.Router();
 
+router.post("/name", Name);
+router.post("/phone_number", phone_number);
+router.post("/email", email);
 router.post("/aadhar", aadhar);
 router.post("/pan", pan);
 router.post("business_description"  , business_description);
