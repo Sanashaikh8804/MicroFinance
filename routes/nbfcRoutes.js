@@ -4,7 +4,7 @@ const router = express.Router();
 const {
   registerNbfc,
   loginNbfc
-} = require("../controllers/nbfcControllers");
+} = require("../controllers/nbfcController");
 
 router.post("/register", registerNbfc);
 router.post("/login", loginNbfc);

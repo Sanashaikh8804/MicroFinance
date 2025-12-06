@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const Nbfc = require("../models/nbfcModel");
 
 // REGISTER NBFC
-exports.registerNbfc = async (req, res) => {
+const registerNbfc = async (req, res) => {
   try {
     const {
       companyName,
@@ -16,18 +16,30 @@ exports.registerNbfc = async (req, res) => {
       password
     } = req.body;
 
-    if (!companyName || !cinNumber || !registrationYear || !headquartersLocation ||
-        !contactFullName || !designation || !officialEmail || !phoneNumber || !password) {
+    if (
+      !companyName ||
+      !cinNumber ||
+      !registrationYear ||
+      !headquartersLocation ||
+      !contactFullName ||
+      !designation ||
+      !officialEmail ||
+      !phoneNumber ||
+      !password
+    ) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    // duplicate checks
-    if (await Nbfc.findOne({ companyName }))
+    // Duplicate checks
+    if (await Nbfc.findOne({ companyName })) {
       return res.status(400).json({ error: "Company already exists" });
+    }
 
-    if (await Nbfc.findOne({ cinNumber }))
+    if (await Nbfc.findOne({ cinNumber })) {
       return res.status(400).json({ error: "CIN already registered" });
+    }
 
+    // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
     const nbfc = await Nbfc.create({
@@ -56,20 +68,26 @@ exports.registerNbfc = async (req, res) => {
   }
 };
 
-
 // LOGIN NBFC
-exports.loginNbfc = async (req, res) => {
+const loginNbfc = async (req, res) => {
   try {
     const { companyName, password } = req.body;
 
-    if (!companyName || !password)
-      return res.status(400).json({ error: "Company name and password required" });
+    if (!companyName || !password) {
+      return res
+        .status(400)
+        .json({ error: "Company name and password required" });
+    }
 
     const nbfc = await Nbfc.findOne({ companyName });
-    if (!nbfc) return res.status(401).json({ error: "Invalid company or password" });
+    if (!nbfc) {
+      return res.status(401).json({ error: "Invalid company or password" });
+    }
 
     const match = await bcrypt.compare(password, nbfc.auth.passwordHash);
-    if (!match) return res.status(401).json({ error: "Invalid company or password" });
+    if (!match) {
+      return res.status(401).json({ error: "Invalid company or password" });
+    }
 
     return res.json({
       message: "Login Successful",
@@ -81,4 +99,10 @@ exports.loginNbfc = async (req, res) => {
     console.log("NBFC Login Error:", err);
     return res.status(500).json({ error: "Server error" });
   }
+};
+
+// EXPORT ALL CONTROLLERS
+module.exports = {
+  registerNbfc,
+  loginNbfc
 };

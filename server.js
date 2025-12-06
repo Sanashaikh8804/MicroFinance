@@ -1,22 +1,26 @@
-const express= require('express');
-const connectDb= require('./config/dbConnection');
+const express = require('express');
+const connectDb = require('./config/dbConnection');
 const errorHandler = require('./Middleware_/errorHandler');
+const nbfcRoutes = require('./routes/nbfcRoutes');
+const userRoutes = require('./routes/userRoutes');
 require('dotenv').config();
 
+// Connect MongoDB
 connectDb();
 
+const app = express();
 
-
-
-
-const app= express();
+// Parse JSON FIRST
 app.use(express.json());
-app.use("/microfinance/user",require("./routes/userRoutes"));
 
-// register error handler after routes
+// Routes
+app.use('/microfinance/user', userRoutes);
+app.use('/api/nbfc', nbfcRoutes);
+
+// Error handler LAST
 app.use(errorHandler);
 
-app.listen(5001,()=> {
-   console.log("Server started on port 5001");
+// Start server
+app.listen(3000, () => {
+    console.log('Server started on port 3000');
 });
-
