@@ -24,7 +24,7 @@ const userSchema= mongoose.Schema({
         required: true
     },
     pan: {
-        type: Number,
+        type: String,
         required: true  
     },
     business_description: {
@@ -51,8 +51,13 @@ const userSchema= mongoose.Schema({
         }
     },
     gst_number: {
-        type: Number,
+        type: String,
         required: true  
+    },
+    documents: {
+        panUrl: { type: String, default: null },
+        aadhaarFrontUrl: { type: String, default: null },
+        aadhaarBackUrl: { type: String, default: null }
     }
 });
 module.exports= mongoose.model("User", userSchema);

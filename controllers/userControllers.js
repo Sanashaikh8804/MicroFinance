@@ -1,4 +1,5 @@
 const asyncHandler = require("express-async-handler");
+const supabase = require("../config/supabase");
 const User = require("../models/userModel");
 const express = require("express");
 const bcryptjs = require("bcryptjs");
@@ -86,7 +87,66 @@ const loginUser= asyncHandler(async (req, res) => {
     }
 });
 
+const uploadUserPan = asyncHandler(async (req, res) => {
+  console.log("👉 uploadUserPan HIT, params =", req.params);
 
-module.exports= { createUser, loginUser };
+  const { userId } = req.params;
+
+  if (!req.file) {
+    console.log("❌ NO FILE RECEIVED");
+    res.status(400);
+    throw new Error("PAN image file is required");
+  }
+
+  // Check user exists
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  const file = req.file;
+  console.log("✅ FILE RECEIVED:", {
+    fieldname: file.fieldname,
+    originalname: file.originalname,
+    mimetype: file.mimetype,
+    size: file.size
+  });
+
+  const extension = file.mimetype.split("/")[1] || "jpg";
+  const fileName = `users/pan/${userId}-${Date.now()}.${extension}`;
+
+  // Upload to Supabase bucket "documents"
+  const { data, error } = await supabase.storage
+    .from("documents")
+    .upload(fileName, file.buffer, {
+      contentType: file.mimetype
+    });
+
+  if (error) {
+    console.error("Supabase upload error:", error);
+    res.status(500);
+    throw new Error("Failed to upload PAN to storage");
+  }
+
+  // Get public URL
+  const { data: publicData } = supabase.storage
+    .from("documents")
+    .getPublicUrl(fileName);
+
+  const publicUrl = publicData.publicUrl;
+
+  // Save into user.documents.panUrl
+  user.documents = user.documents || {};
+  user.documents.panUrl = publicUrl;
+  await user.save();
+
+  res.status(200).json({
+    message: "PAN uploaded successfully",
+    panUrl: publicUrl
+  });
+});
+
+module.exports= { createUser, loginUser, uploadUserPan };
 
 

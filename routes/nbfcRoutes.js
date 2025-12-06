@@ -8,11 +8,14 @@ const {
   getNbfcDashboard
 } = require("../controllers/nbfcController");
 
+// AUTH ROUTES
 router.post("/register", registerNbfc);
 router.post("/login", loginNbfc);
 
-// new routes
-router.post("/schemes", createLoanScheme);
+// CREATE NEW LOAN SCHEME
+router.post("/:nbfcId/create-scheme", createLoanScheme);
+
+// DASHBOARD
 router.get("/dashboard/:nbfcId", getNbfcDashboard);
 
 module.exports = router;

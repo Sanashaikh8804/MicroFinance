@@ -1,9 +1,10 @@
+require('dotenv').config();
+
 const express = require('express');
 const connectDb = require('./config/dbConnection');
 const errorHandler = require('./Middleware_/errorHandler');
 const nbfcRoutes = require('./routes/nbfcRoutes');
 const userRoutes = require('./routes/userRoutes');
-require('dotenv').config();
 
 // Connect MongoDB
 connectDb();
@@ -17,6 +18,8 @@ app.use("/microfinance/user",require("./routes/userRoutes"));
 app.use("/microfinance/getLoan",require("./routes/getLoan"));
 app.use("/microfinance/availableSchemes",require("./routes/availableSchemesRoutes"));
 app.use("/microfinance/reviewApplications",require("./routes/reviewApplications"));
+
+
 
 
 
