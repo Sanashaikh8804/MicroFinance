@@ -101,8 +101,98 @@ const loginNbfc = async (req, res) => {
   }
 };
 
-// EXPORT ALL CONTROLLERS
+const createLoanScheme = async (req, res) => {
+  try {
+    const { nbfcId } = req.body;
+
+    const {
+      schemeName,
+      minAmount,
+      maxAmount,
+      minPeriodMonths,
+      maxPeriodMonths,
+      interestRate,
+      processingFeePercent,
+      requiredDocuments,
+      preferredBusinessTypes
+    } = req.body;
+
+    if (
+      !nbfcId || !schemeName ||
+      minAmount == null || maxAmount == null ||
+      minPeriodMonths == null || maxPeriodMonths == null ||
+      interestRate == null
+    ) {
+      return res.status(400).json({ error: "Required fields are missing" });
+    }
+
+    const nbfc = await Nbfc.findById(nbfcId);
+    if (!nbfc) {
+      return res.status(404).json({ error: "NBFC not found" });
+    }
+
+    // Simple schemeId: SCH-001, SCH-002, ...
+    const schemeNumber = (nbfc.loanSchemes?.length || 0) + 1;
+    const schemeId = `SCH-${String(schemeNumber).padStart(3, "0")}`;
+
+    const newScheme = {
+      schemeId,
+      schemeName,
+      minAmount,
+      maxAmount,
+      minPeriodMonths,
+      maxPeriodMonths,
+      interestRate,
+      processingFeePercent: processingFeePercent || 0,
+      requiredDocuments: requiredDocuments || [],
+      preferredBusinessTypes: preferredBusinessTypes || [],
+      isActive: true,
+      applicantsCount: 0,
+      approvedCount: 0
+    };
+
+    nbfc.loanSchemes.push(newScheme);
+    // update dashboard count
+    nbfc.stats.activeSchemes = (nbfc.stats?.activeSchemes || 0) + 1;
+
+    await nbfc.save();
+
+    return res.status(201).json({
+      message: "Loan scheme created successfully",
+      scheme: newScheme
+    });
+
+  } catch (err) {
+    console.log("CreateLoanScheme Error:", err);
+    return res.status(500).json({ error: "Server error while creating scheme" });
+  }
+};
+
+// GET DASHBOARD DATA FOR NBFC
+const getNbfcDashboard = async (req, res) => {
+  try {
+    const { nbfcId } = req.params;
+
+    const nbfc = await Nbfc.findById(nbfcId);
+    if (!nbfc) {
+      return res.status(404).json({ error: "NBFC not found" });
+    }
+
+    return res.json({
+      companyName: nbfc.companyName,
+      stats: nbfc.stats,
+      loanSchemes: nbfc.loanSchemes
+    });
+
+  } catch (err) {
+    console.log("GetNbfcDashboard Error:", err);
+    return res.status(500).json({ error: "Server error while fetching dashboard" });
+  }
+};
+
 module.exports = {
   registerNbfc,
-  loginNbfc
+  loginNbfc,
+  createLoanScheme,
+  getNbfcDashboard
 };
