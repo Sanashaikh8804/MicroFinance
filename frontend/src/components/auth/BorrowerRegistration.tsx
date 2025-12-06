@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import type { User } from '../../App';
 
 interface BorrowerRegistrationProps {
@@ -8,6 +8,9 @@ interface BorrowerRegistrationProps {
 }
 
 export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistrationProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const [formData, setFormData] = useState({
     fullName: '',
     businessName: '',
@@ -26,15 +29,65 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear error when user modifies form
+    if (error) setError('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onComplete({
-      name: formData.fullName,
-      role: 'borrower',
-      businessName: formData.businessName
-    });
+    setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Construct payload matching userControllers.js expectations
+      // We combine businessName/Type into description or send dummy data for missing required fields
+      const payload = {
+        name: formData.fullName,
+        email: formData.email,
+        phone_number: formData.phone,
+        password: formData.password,
+        aadhar: formData.aadhar,
+        pan: formData.pan,
+        // Combining business info as the controller only has 'business_description'
+        business_description: `${formData.businessName} (${formData.businessType}): ${formData.businessDescription}`,
+        // Dummy values for required backend fields not present in this form design
+        previous_micro_loans: "None", 
+        gst_number: "Unregistered/Pending" 
+      };
+
+      // Based on server.js: app.use("/microfinance/user", ...) and routes: router.post("/createUser", ...)
+      const response = await fetch('http://localhost:5000/microfinance/user/createUser', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Registration failed');
+      }
+
+      // Success: login the user
+      onComplete({
+        name: data.name,
+        role: 'borrower',
+        businessName: formData.businessName
+      });
+
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during registration');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -42,7 +95,8 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
       <div className="w-4/5 max-w-6xl">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8"
+          disabled={isLoading}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8 disabled:opacity-50"
         >
           <ArrowLeft className="w-5 h-5" />
           Back
@@ -53,6 +107,13 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
             <h2 className="text-gray-900 mb-2">Borrower Registration</h2>
             <p className="text-gray-600">Create your account to access loan opportunities</p>
           </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <p>{error}</p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Personal Information */}
@@ -67,8 +128,9 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
                     value={formData.fullName}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="Enter your full name"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500 disabled:bg-gray-100"
                   />
                 </div>
                 <div>
@@ -79,8 +141,9 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="your@email.com"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500 disabled:bg-gray-100"
                   />
                 </div>
                 <div>
@@ -91,8 +154,9 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
                     value={formData.phone}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="+91 XXXXX XXXXX"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500 disabled:bg-gray-100"
                   />
                 </div>
                 <div>
@@ -103,8 +167,9 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
                     value={formData.aadhar}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="XXXX XXXX XXXX"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500 disabled:bg-gray-100"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -115,8 +180,9 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
                     value={formData.pan}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="XXXXX0000X"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500 disabled:bg-gray-100"
                   />
                 </div>
               </div>
@@ -134,8 +200,9 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
                     value={formData.businessName}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="Your business name"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
                 <div>
@@ -145,7 +212,8 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
                     value={formData.businessType}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    disabled={isLoading}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   >
                     <option value="">Select business type</option>
                     <option value="retail">Retail</option>
@@ -162,9 +230,10 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
                     value={formData.businessDescription}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     rows={4}
                     placeholder="Describe your business activities..."
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none disabled:bg-gray-100"
                   />
                 </div>
               </div>
@@ -180,8 +249,9 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  disabled={isLoading}
                   placeholder="Create a strong password"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500 disabled:bg-gray-100"
                 />
               </div>
               <div>
@@ -192,8 +262,9 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
+                  disabled={isLoading}
                   placeholder="Re-enter password"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-success-500 disabled:bg-gray-100"
                 />
               </div>
             </div>
@@ -202,6 +273,7 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
               <input
                 type="checkbox"
                 required
+                disabled={isLoading}
                 className="mt-1 rounded border-gray-300 text-success-600 focus:ring-success-500"
               />
               <label className="text-sm text-gray-600">
@@ -211,9 +283,17 @@ export function BorrowerRegistration({ onComplete, onBack }: BorrowerRegistratio
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-success-600 to-success-700 text-white py-3 rounded-lg hover:from-success-700 hover:to-success-800 transition-all shadow-md"
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-success-600 to-success-700 text-white py-3 rounded-lg hover:from-success-700 hover:to-success-800 transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Complete Registration
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                'Complete Registration'
+              )}
             </button>
           </form>
         </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, LogOut, ArrowLeft, CheckCircle } from 'lucide-react';
+import { TrendingUp, LogOut, ArrowLeft, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import type { User } from '../../App';
 
 interface CreateSchemeProps {
@@ -36,6 +36,9 @@ const businessTypeOptions = [
 ];
 
 export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const [formData, setFormData] = useState({
     schemeName: '',
     loanRangeCategory: '',
@@ -54,6 +57,7 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
       ...formData,
       [e.target.name]: e.target.value
     });
+    if (error) setError('');
   };
 
   const toggleDoc = (doc: string) => {
@@ -74,10 +78,58 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Loan scheme created successfully!');
-    onNavigate('nbfc-dashboard');
+    setError('');
+    setIsLoading(true);
+
+    try {
+      // Map form state to backend controller expectations
+      // Ideally, the user object should contain the NBFC ID. 
+      // If user.id is not available in your types, ensure it is passed correctly during login.
+      const nbfcId = (user as any).id || (user as any)._id; 
+
+      if (!nbfcId) {
+        throw new Error("NBFC ID not found. Please relogin.");
+      }
+
+      const payload = {
+        nbfcId: nbfcId,
+        schemeName: formData.schemeName,
+        minAmount: Number(formData.minAmount),
+        maxAmount: Number(formData.maxAmount),
+        minPeriodMonths: Number(formData.loanPeriodMin),
+        maxPeriodMonths: Number(formData.loanPeriodMax),
+        interestRate: Number(formData.interestRate),
+        processingFeePercent: formData.processingFee ? Number(formData.processingFee) : 0,
+        requiredDocuments: formData.requiredDocs,
+        preferredBusinessTypes: formData.preferredBusinessTypes
+      };
+
+      const response = await fetch('http://localhost:5000/api/nbfc/schemes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create loan scheme');
+      }
+
+      // Success
+      alert('Loan scheme created successfully!');
+      onNavigate('nbfc-dashboard');
+
+    } catch (err: any) {
+      console.error("Create Scheme Error:", err);
+      setError(err.message || 'An error occurred while creating the scheme');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -103,7 +155,8 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
         {/* Back Button */}
         <button
           onClick={() => onNavigate('nbfc-dashboard')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          disabled={isLoading}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 disabled:opacity-50"
         >
           <ArrowLeft className="w-5 h-5" />
           Back to Dashboard
@@ -118,6 +171,13 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
             </p>
           </div>
 
+          {error && (
+            <div className="m-8 mb-0 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <p>{error}</p>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="p-8 space-y-8">
             {/* Basic Information */}
             <div>
@@ -131,8 +191,9 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
                     value={formData.schemeName}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="e.g., Small Business Quick Loan"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
               </div>
@@ -150,8 +211,9 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
                     value={formData.minAmount}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="25000"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
                 <div>
@@ -162,8 +224,9 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
                     value={formData.maxAmount}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="100000"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
               </div>
@@ -180,7 +243,8 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
                     value={formData.loanPeriodMin}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    disabled={isLoading}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   >
                     <option value="">Select minimum</option>
                     <option value="3">3 months</option>
@@ -195,7 +259,8 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
                     value={formData.loanPeriodMax}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    disabled={isLoading}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   >
                     <option value="">Select maximum</option>
                     <option value="12">12 months</option>
@@ -220,8 +285,9 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
                     value={formData.interestRate}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     placeholder="12.0"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
                 <div>
@@ -232,8 +298,9 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
                     name="processingFee"
                     value={formData.processingFee}
                     onChange={handleChange}
+                    disabled={isLoading}
                     placeholder="2.0"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
                   />
                 </div>
               </div>
@@ -259,6 +326,7 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
                       type="checkbox"
                       checked={formData.requiredDocs.includes(doc)}
                       onChange={() => toggleDoc(doc)}
+                      disabled={isLoading}
                       className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                     />
                     <span className="text-gray-900">{doc}</span>
@@ -290,6 +358,7 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
                       type="checkbox"
                       checked={formData.preferredBusinessTypes.includes(type)}
                       onChange={() => toggleBusinessType(type)}
+                      disabled={isLoading}
                       className="rounded border-gray-300 text-success-600 focus:ring-success-500"
                     />
                     <span className="text-gray-900">{type}</span>
@@ -302,9 +371,17 @@ export function CreateScheme({ user, onNavigate, onLogout }: CreateSchemeProps) 
             <div className="pt-6 border-t border-gray-200">
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all shadow-md"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Post Loan Scheme
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Posting Scheme...
+                  </>
+                ) : (
+                  'Post Loan Scheme'
+                )}
               </button>
               <p className="text-center text-sm text-gray-500 mt-4">
                 Once posted, borrowers matching your criteria will be able to view and apply for this scheme

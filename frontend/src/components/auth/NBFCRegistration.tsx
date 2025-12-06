@@ -78,7 +78,7 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
       onComplete({
         name: data.companyName,
         role: 'nbfc',
-        // id: data.nbfcId 
+        id: data.nbfcId 
       });
 
     } catch (err: any) {

@@ -77,7 +77,7 @@ export function LandingPage({ onLogin, onNavigate }: LandingPageProps) {
           name: data.companyName,
           role: 'nbfc',
           // Assuming User type supports optional ID, or you can store it in context
-          // id: data.nbfcId 
+           id: data.nbfcId 
         });
 
       } catch (err: any) {
