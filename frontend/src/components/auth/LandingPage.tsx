@@ -86,83 +86,85 @@ export function LandingPage({ onLogin, onNavigate }: LandingPageProps) {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
-          <div className="lg:hidden mb-8 flex items-center gap-3 text-primary-700">
-            <TrendingUp className="w-8 h-8" />
-            <span className="text-2xl">FinBridge</span>
+       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-gray-50">
+        <div className="w-4/5 max-w-4xl">
+          <div className="lg:hidden mb-12 flex items-center justify-center gap-3 text-primary-700">
+            <TrendingUp className="w-10 h-10" />
+            <span className="text-3xl font-semibold">FinBridge</span>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
-            <h2 className="text-gray-900 mb-2">Welcome Back</h2>
-            <p className="text-gray-600 mb-8">Sign in to access your account</p>
+          <div className="bg-white rounded-3xl shadow-2xl p-10 sm:p-12 border border-gray-100">
+            <div className="mb-10">
+              <h2 className="text-gray-900 mb-3 text-3xl font-bold">Welcome Back</h2>
+              <p className="text-gray-500 text-lg">Sign in to access your account</p>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-gray-700 mb-2">Phone Number</label>
+                <label className="block text-gray-700 mb-2.5 font-medium text-sm">Phone Number</label>
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Enter your phone number"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow text-base bg-gray-50 hover:bg-white"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-700 mb-2">Password</label>
+                <label className="block text-gray-700 mb-2.5 font-medium text-sm">Password</label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow text-base bg-gray-50 hover:bg-white"
                 />
               </div>
 
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2 text-gray-600">
-                  <input type="checkbox" className="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
-                  Remember me
+              <div className="flex items-center justify-between text-sm pt-2">
+                <label className="flex items-center gap-2.5 text-gray-600 cursor-pointer">
+                  <input type="checkbox" className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 w-4 h-4" />
+                  <span>Remember me</span>
                 </label>
-                <button type="button" className="text-primary-600 hover:text-primary-700">
+                <button type="button" className="text-primary-600 hover:text-primary-700 font-medium">
                   Forgot password?
                 </button>
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all shadow-md"
+                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-4 rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg hover:shadow-xl font-semibold text-base mt-8"
               >
                 Sign In
               </button>
             </form>
 
             {/* Demo Login Links */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-600 mb-4 text-center">Quick Demo Access:</p>
-              <div className="space-y-3">
+            <div className="mt-10 pt-8 border-t border-gray-200">
+              <p className="text-sm text-gray-500 mb-5 text-center font-medium">Quick Demo Access</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
                   onClick={() => handleDemoLogin('borrower')}
-                  className="w-full bg-success-50 text-success-700 border border-success-300 py-2.5 rounded-lg hover:bg-success-100 transition-colors"
+                  className="bg-success-50 text-success-700 border border-success-200 py-3.5 px-4 rounded-xl hover:bg-success-100 transition-all font-medium text-sm hover:shadow-md"
                 >
-                  Login as Demo Borrower
+                  Demo Borrower
                 </button>
                 <button
                   onClick={() => handleDemoLogin('nbfc')}
-                  className="w-full bg-primary-50 text-primary-700 border border-primary-300 py-2.5 rounded-lg hover:bg-primary-100 transition-colors"
+                  className="bg-primary-50 text-primary-700 border border-primary-200 py-3.5 px-4 rounded-xl hover:bg-primary-100 transition-all font-medium text-sm hover:shadow-md"
                 >
-                  Login as Demo NBFC
+                  Demo NBFC
                 </button>
               </div>
             </div>
 
-            <div className="mt-6 text-center">
-              <p className="text-gray-600">
+            <div className="mt-8 text-center">
+              <p className="text-gray-600 text-base">
                 Don't have an account?{' '}
                 <button
                   onClick={() => onNavigate('registration-select')}
-                  className="text-primary-600 hover:text-primary-700"
+                  className="text-primary-600 hover:text-primary-700 font-semibold"
                 >
                   Register now
                 </button>

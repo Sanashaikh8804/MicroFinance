@@ -38,7 +38,7 @@ export function NBFCRegistration({ onComplete, onBack }: NBFCRegistrationProps) 
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
-      <div className="w-full max-w-3xl">
+      <div className="w-4/5 max-w-6xl">
         <button
           onClick={onBack}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8"
