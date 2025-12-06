@@ -3,7 +3,7 @@ const User = require("../models/userModel");
 
 //create new name
 const createUser=  asyncHandler(async (req, res) => {
-    console.log{"req body is", req.body};
+    console.log ("req body is", req.body);
     const { name, phone_number, password, email, aadhar, pan, business_description, previous_micro_loans, gst_number } = req.body;
     
     if (!name || !phone_number || !password || !email || !aadhar || !pan || !business_description || !previous_micro_loans || !gst_number) {
