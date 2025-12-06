@@ -10,3 +10,7 @@ app.use("/microfinance/user",require("./routes/userRoutes"));
  app.listen(3000,()=> {
     console.log("Server started on port 3000");
  })
+
+ const nbfcRoutes = require("./routes/nbfcRoutes");
+
+app.use("/api/nbfc", nbfcRoutes);
