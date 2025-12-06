@@ -15,6 +15,7 @@ app.use(express.json());
 
 app.use("/microfinance/user",require("./routes/userRoutes"));
 app.use("/microfinance/getLoan",require("./routes/getLoan"));
+app.use("/microfinance/availableSchemes",require("./routes/availableSchemesRoutes"));
 
 
 
