@@ -13,8 +13,13 @@ const app = express();
 // Parse JSON FIRST
 app.use(express.json());
 
+app.use("/microfinance/user",require("./routes/userRoutes"));
+app.use("/microfinance/getLoan",require("./routes/getLoan"));
+
+
+
 // Routes
-app.use('/microfinance/user', userRoutes);
+
 app.use('/api/nbfc', nbfcRoutes);
 
 // Error handler LAST
