@@ -1,5 +1,22 @@
 const mongoose = require("mongoose");
 
+const applicationSchema = new mongoose.Schema(
+  {
+    applicantName: { type: String, required: true },
+    businessName: { type: String, required: true },
+    schemeId: { type: String, required: true },
+    schemeName: { type: String, required: true },
+    amount: { type: Number, required: true },
+    status: {
+      type: String,
+      enum: ["pending", "under_review", "approved", "rejected"],
+      default: "pending"
+    },
+    appliedAt: { type: Date, default: Date.now }
+  },
+  { _id: true }
+);
+
 // one loan scheme inside NBFC
 const loanSchemeSchema = new mongoose.Schema(
   {
@@ -65,7 +82,8 @@ const nbfcSchema = new mongoose.Schema(
       type: String,
       enum: ["pending_verification", "active", "suspended"],
       default: "pending_verification"
-    }
+    },
+     applications: [applicationSchema]
   },
   { timestamps: true }
 );

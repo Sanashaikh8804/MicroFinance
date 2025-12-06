@@ -1,5 +1,7 @@
 const bcrypt = require("bcryptjs");
 const Nbfc = require("../models/nbfcModel");
+const mongoose = require("mongoose");
+
 
 // REGISTER NBFC
 const registerNbfc = async (req, res) => {
@@ -173,15 +175,28 @@ const getNbfcDashboard = async (req, res) => {
   try {
     const { nbfcId } = req.params;
 
+    if (!mongoose.Types.ObjectId.isValid(nbfcId)) {
+      return res.status(400).json({ error: "Invalid NBFC id" });
+    }
+
     const nbfc = await Nbfc.findById(nbfcId);
     if (!nbfc) {
       return res.status(404).json({ error: "NBFC not found" });
     }
 
+    const activeSchemes = (nbfc.loanSchemes || []).filter(s => s.isActive);
+    const allApplications = nbfc.applications || [];
+
+    // sort by appliedAt desc and take latest 5
+    const recentApplicants = allApplications
+      .sort((a, b) => b.appliedAt - a.appliedAt)
+      .slice(0, 5);
+
     return res.json({
       companyName: nbfc.companyName,
       stats: nbfc.stats,
-      loanSchemes: nbfc.loanSchemes
+      activeSchemes,
+      recentApplicants
     });
 
   } catch (err) {
@@ -189,6 +204,7 @@ const getNbfcDashboard = async (req, res) => {
     return res.status(500).json({ error: "Server error while fetching dashboard" });
   }
 };
+
 
 module.exports = {
   registerNbfc,
