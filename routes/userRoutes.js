@@ -3,6 +3,7 @@ const router= express.Router();
 
 router.post("/name", Name);
 router.post("/phone_number", phone_number);
+router.post("/password", password)
 router.post("/email", email);
 router.post("/aadhar", aadhar);
 router.post("/pan", pan);

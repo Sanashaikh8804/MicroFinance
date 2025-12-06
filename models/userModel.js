@@ -9,6 +9,10 @@ const userSchema= mongoose.Schema({
         type: integer,  
         required: true
     },
+    password: {
+        type: String,
+        required: true  
+    },
     email: {    
         type: String,
         required: true  
@@ -18,7 +22,7 @@ const userSchema= mongoose.Schema({
         required: true
     },
     pan: {
-        type: intege,
+        type: integer,
         required: true  
     },
     business_description: {
@@ -26,9 +30,24 @@ const userSchema= mongoose.Schema({
         required: true
     },
     previous_micro_loans: { 
-        type: intege,
-        required: true
+        numberOfLoans: {
+            type: integer,
+            required: true
     },  
+        totalAmount: {
+            type: integer,
+            required: true
+        },
+    
+        interest: {
+            type: Number,
+            required: true
+        },
+        remainingPayments: {
+            type: integer,
+            required: true
+        }
+    },
     gst_number: {
         type: integer,
         required: true  
