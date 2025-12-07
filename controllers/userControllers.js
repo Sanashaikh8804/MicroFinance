@@ -143,7 +143,25 @@ const uploadUserPan = asyncHandler(async (req, res) => {
   });
 });
 
+const getUserPanUrl = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
 
-module.exports= { createUser, loginUser, uploadUserPan };
+  // find user and only fetch documents field
+  const user = await User.findById(userId).select("documents");
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const panUrl = user.documents?.panUrl;
+  if (!panUrl) {
+    return res.status(404).json({ error: "PAN image not uploaded yet" });
+  }
+
+  return res.status(200).json({ panUrl });
+});
+
+
+
+module.exports= { createUser, loginUser, uploadUserPan, getUserPanUrl };
 
 
