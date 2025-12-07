@@ -98,7 +98,6 @@ const uploadUserPan = asyncHandler(async (req, res) => {
     throw new Error("PAN image file is required");
   }
 
-  // Check user exists
   const user = await User.findById(userId);
   if (!user) {
     res.status(404);
@@ -116,7 +115,6 @@ const uploadUserPan = asyncHandler(async (req, res) => {
   const extension = file.mimetype.split("/")[1] || "jpg";
   const fileName = `users/pan/${userId}-${Date.now()}.${extension}`;
 
-  // Upload to Supabase bucket "documents"
   const { data, error } = await supabase.storage
     .from("documents")
     .upload(fileName, file.buffer, {
@@ -129,14 +127,12 @@ const uploadUserPan = asyncHandler(async (req, res) => {
     throw new Error("Failed to upload PAN to storage");
   }
 
-  // Get public URL
   const { data: publicData } = supabase.storage
     .from("documents")
     .getPublicUrl(fileName);
 
   const publicUrl = publicData.publicUrl;
 
-  // Save into user.documents.panUrl
   user.documents = user.documents || {};
   user.documents.panUrl = publicUrl;
   await user.save();
@@ -146,6 +142,7 @@ const uploadUserPan = asyncHandler(async (req, res) => {
     panUrl: publicUrl
   });
 });
+
 
 module.exports= { createUser, loginUser, uploadUserPan };
 

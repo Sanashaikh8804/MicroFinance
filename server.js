@@ -23,8 +23,6 @@ app.use("/microfinance/reviewApplications",require("./routes/reviewApplications"
 
 
 
-
-
 // Routes
 
 app.use('/api/nbfc', nbfcRoutes);
